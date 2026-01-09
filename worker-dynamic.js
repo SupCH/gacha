@@ -271,13 +271,49 @@ export default {
                     if (key && value) cookieObj[key] = value;
                 });
 
-                const cookieToken = cookieObj['cookie_token_v2'] || cookieObj['cookie_token'];
-                const accountId = cookieObj['account_id'] || cookieObj['ltuid'] || cookieObj['ltuid_v2'];
+                let cookieToken = cookieObj['cookie_token_v2'] || cookieObj['cookie_token'];
+                let accountId = cookieObj['account_id'] || cookieObj['ltuid'] || cookieObj['ltuid_v2'];
 
-                if (!cookieToken || !accountId) {
+                // 如果只提供了 token 值（没有 key），尝试作为 cookie_token_v2 使用
+                if (!cookieToken && cookie.trim().startsWith('v2_')) {
+                    cookieToken = cookie.trim();
+                }
+
+                if (!cookieToken) {
                     return jsonResponse({
                         retcode: -1,
-                        message: "Cookie 格式不正确，请确保包含 cookie_token_v2 和 account_id"
+                        message: "未找到有效的 cookie token"
+                    });
+                }
+
+                // 如果没有 account_id，尝试从米游社 API 获取
+                if (!accountId) {
+                    try {
+                        const userInfoUrl = isGlobal
+                            ? "https://api-account-os.hoyoverse.com/account/auth/api/getUserAccountInfoByLToken"
+                            : "https://api-takumi.mihoyo.com/auth/api/getUserAccountInfoBySToken";
+
+                        const userInfoResp = await fetch(userInfoUrl, {
+                            headers: {
+                                "Cookie": `cookie_token_v2=${cookieToken};`,
+                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                            }
+                        });
+
+                        const userInfo = await userInfoResp.json();
+
+                        if (userInfo.retcode === 0 && userInfo.data) {
+                            accountId = userInfo.data.account_id || userInfo.data.uid;
+                        }
+                    } catch (e) {
+                        // 如果获取失败，继续尝试构建URL（可能在后续请求中会失败）
+                    }
+                }
+
+                if (!accountId) {
+                    return jsonResponse({
+                        retcode: -1,
+                        message: "无法获取账号ID，请检查 cookie 是否有效或尝试同时提供 account_id"
                     });
                 }
 
