@@ -13,7 +13,7 @@ import { PasswordLogin } from './components/PasswordLogin';
 import { fetchFullGachaLog, convertToUIGF } from './services/authService';
 
 // --- 配置区 ---
-const DEEPSEEK_API_KEY = 'sk-0ff8f8dbe8584403a95c091d8aa6719e';
+const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY || '';
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
 
 const GAME_CONFIG = {

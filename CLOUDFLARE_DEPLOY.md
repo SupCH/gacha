@@ -23,21 +23,6 @@ GitHub 连接 Pages 是最简单的。
 1. **创建 GitHub 仓库**: 在 GitHub 上创建一个新项目，并将本地代码推送到仓库。
 2. **连接 Pages**:
    - 登录 Cloudflare -> **Workers & Pages** -> **Create application** -> **Pages** -> **Connect to Git**。
-   - 选择你的仓库。
-3. **构建设置**:
-   - **Framework preset**: `Vite` (如果没有，选 `None` 并手动输入)。
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-4. **添加环境变量** (重要):
-   - 在 **Settings** -> **Environment variables** 中添加 `VITE_WORKER_URL`。
-   - 填入你的后端 Worker 地址。
-5. **部署**: 点击保存并部署。以后你每次 `git push`，前端都会自动更新。
-
----
-
-## �️ 3. 后端部署 (Cloudflare Workers)
-
-Worker 也可以通过 GitHub 自动部署（使用 Wrangler）。
 
 ### 步骤 1: 配置文件
 在项目根目录创建一个 `wrangler.toml` 文件（如果还没有）：
