@@ -4,7 +4,7 @@
  */
 
 // 后端 Worker 地址 (部署后需要配置)
-const WORKER_ENDPOINT = import.meta.env.VITE_WORKER_URL || 'https://your-worker.workers.dev';
+const WORKER_ENDPOINT = import.meta.env.VITE_WORKER_URL || 'https://gacha-worker.917560056.workers.dev';
 
 export interface QRCodeData {
     url: string;
