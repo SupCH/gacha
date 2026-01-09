@@ -1,0 +1,7 @@
+name = "gacha-worker"
+main = "worker-dynamic.js"
+compatibility_date = "2023-12-01"
+
+[vars]
+# 请在 Cloudflare Worker 控制台或 GitHub Secrets 中配置以下变量
+# SALT_CONFIG_URL = "你的远程salt配置地址"
