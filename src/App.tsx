@@ -125,7 +125,7 @@ function WelcomeScreen({ onUpload, onImportMode, loading }: { onUpload: (e: Reac
               </div>
               <div>
                 <span className="block font-bold text-white">在线同步记录</span>
-                <span className="text-xs text-indigo-100 mt-1">支持 国服/扫码 / 国际服/链接导入</span>
+                <span className="text-xs text-indigo-100 mt-1">支持 国服/扫码 / 国际服/链接导入（暂时不可用）</span>
               </div>
             </div>
           </button>
@@ -228,7 +228,7 @@ function ImportHub({ onBack, onSuccess }: { onBack: () => void; onSuccess: (data
                       onClick={() => setMethod('qr')}
                       icon={QrCode}
                       label="扫码登录"
-                      sub="最便捷"
+                      sub="暂时不可用"
                     />
                   )}
                   <MethodTab
@@ -236,14 +236,14 @@ function ImportHub({ onBack, onSuccess }: { onBack: () => void; onSuccess: (data
                     onClick={() => setMethod('password')}
                     icon={Key}
                     label="密码登录"
-                    sub="支持全服"
+                    sub="暂时不可用"
                   />
                   <MethodTab
                     active={method === 'cookie'}
                     onClick={() => setMethod('cookie')}
                     icon={Cookie}
                     label="Cookie登录"
-                    sub="推荐"
+                    sub="暂时不可用"
                   />
                 </div>
 
