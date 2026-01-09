@@ -1,0 +1,19 @@
+{
+    "cn": {
+        "lk2": "rk4xg2hakoi26nljpr099fv9fck1ah10",
+        "k2": "dmq2p7ka6nsu0d3ev6nex4k1ndzrnfiy",
+        "s4x": "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs",
+        "s6x": "t0qEgfub6cvuvAPgR5m9aQWWVciEer7v",
+        "prod": "JwYDpKvLj6MrMqqYU6jTKF17KNO2PXoS",
+        "version": "2.81.0",
+        "app_name": "米游社",
+        "last_update": "2025-01-09"
+    },
+    "os": {
+        "lk2": "okr71iL8870LnguK6y5dRIF7DSKn0rrl",
+        "version": "2.40.0",
+        "app_name": "HoYoLAB",
+        "last_update": "2025-01-09"
+    },
+    "_comment": "此配置文件应托管在公开可访问的位置(如GitHub Gist或Cloudflare Pages),供Worker实时获取最新Salt值。更新此文件后,Worker会在1小时内自动同步最新配置。"
+}

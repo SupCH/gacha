@@ -1,0 +1,147 @@
+/**
+ * Gacha Auth Backend (Cloudflare Workers)
+ * * 功能：
+ * 1. 代理米哈游/HoYoverse 扫码接口
+ * 2. 模拟客户端生成 DS 签名
+ * 3. 交换 stoken 为 authkey
+ */
+
+// --- 常用 Salt (需定期维护) ---
+// 注：这些是米游社/HoYoLAB Android 客户端的 Salt，可能会随版本更新
+const SALT_CN = "xV8v4Qu54lUKrEYy3azhZgbBashqlF_b"; // LK2 - 米游社
+const SALT_OS = "okr71iL8870LnguK6y5dRIF7DSKn0rrl"; // HoYoLAB
+
+// --- 工具函数: MD5 ---
+async function md5(message) {
+  const msgUint8 = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('MD5', msgUint8);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// --- 工具函数: 生成 DS 签名 ---
+async function getDS(isGlobal) {
+  const salt = isGlobal ? SALT_OS : SALT_CN;
+  const t = Math.floor(Date.now() / 1000);
+  const r = Math.random().toString(36).substring(2, 8); // 6位随机字符
+  const main = `salt=${salt}&t=${t}&r=${r}`;
+  const sign = await md5(main);
+  return `${t},${r},${sign}`;
+}
+
+// --- 主处理逻辑 ---
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    
+    // 1. CORS 处理 (允许你的前端访问)
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, x-rpc-client_type, x-rpc-app_version",
+        }
+      });
+    }
+
+    try {
+      // 路由 1: 获取二维码
+      if (url.pathname === "/api/auth/qr/fetch") {
+        const isGlobal = url.searchParams.get("scope") === "global";
+        const target = isGlobal 
+          ? "https://hk4e-sdk-os.hoyoverse.com/hk4e_global/combo/panda/qrcode/fetch"
+          : "https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/fetch";
+        
+        const appId = isGlobal ? "150" : "4";
+        const deviceId = crypto.randomUUID();
+
+        const resp = await fetch(target, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ app_id: appId, device: deviceId })
+        });
+        
+        const data = await resp.json();
+        return jsonResponse(data);
+      }
+
+      // 路由 2: 查询扫码状态
+      if (url.pathname === "/api/auth/qr/query") {
+        const ticket = url.searchParams.get("ticket");
+        const isGlobal = url.searchParams.get("scope") === "global";
+        
+        const target = isGlobal
+          ? "https://hk4e-sdk-os.hoyoverse.com/hk4e_global/combo/panda/qrcode/query"
+          : "https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/query";
+        
+        const appId = isGlobal ? "150" : "4";
+        // 注意：真实场景这里应该持久化 deviceId，这里演示简化为重新生成（可能导致部分状态查不到）
+        // 建议前端传递 deviceId
+        const deviceId = url.searchParams.get("device") || crypto.randomUUID(); 
+
+        const resp = await fetch(target, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ app_id: appId, device: deviceId, ticket })
+        });
+        
+        const data = await resp.json();
+        return jsonResponse(data);
+      }
+
+      // 路由 3: 换取 Authkey (核心逻辑)
+      // 前端扫码成功拿到 stoken 后，调用此接口生成抽卡链接所需的 authkey
+      if (url.pathname === "/api/auth/gen-key") {
+        const { stoken, uid, game_biz, region, scope } = await request.json();
+        const isGlobal = scope === "global";
+        
+        // 生成 DS
+        const ds = await getDS(isGlobal);
+        
+        // 目标 API
+        const endpoint = isGlobal
+           ? "https://api-account-os.hoyoverse.com/binding/api/genAuthKey"
+           : "https://api-takumi.mihoyo.com/binding/api/genAuthKey";
+
+        const headers = {
+          "DS": ds,
+          "x-rpc-client_type": "5", // 5 = Android Web / Others
+          "x-rpc-app_version": isGlobal ? "2.34.1" : "2.56.1", // 需随版本更新
+          "Cookie": `stoken=${stoken};stuid=${uid};mid=${uid};`, // 简化的 Cookie 构造
+          "Content-Type": "application/json"
+        };
+
+        const payload = {
+          "auth_appid": "webview_gacha",
+          "game_biz": game_biz, // e.g., hk4e_cn
+          "game_uid": parseInt(uid),
+          "region": region // e.g., cn_gf01
+        };
+
+        const resp = await fetch(endpoint, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+        return jsonResponse(data);
+      }
+      
+      return new Response("Not Found", { status: 404 });
+
+    } catch (e) {
+      return jsonResponse({ retcode: -1, msg: e.message }, 500);
+    }
+  }
+};
+
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    }
+  });
+}
