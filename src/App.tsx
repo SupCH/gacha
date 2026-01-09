@@ -319,11 +319,14 @@ function ManualLinkImporter({ region }: { region: string; onSuccess: (data: any)
     }, 1500);
   };
 
-  const copyScript = () => {
-    const script = region === 'cn'
+  const getScript = () => {
+    return region === 'cn'
       ? `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;$g=Get-Content $env:USERPROFILE\\AppDataLocalLow\\miHoYo\\Genshin Impact\\output_log.txt -ErrorAction SilentlyContinue | Select-String 'https.+getGachaLog';if($g){$g.Matches.Value[-1] | Set-Clipboard;Write-Host '链接已复制!' -Fg Green}else{Write-Host '未找到链接,请先在游戏内打开抽卡历史' -Fg Red}`
       : `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;$g=Get-Content $env:USERPROFILE\\AppDataLocalLow\\Cognosphere\\Star Rail\\Player.log -ErrorAction SilentlyContinue | Select-String 'https.+getGachaLog';if($g){$g.Matches.Value[-1] | Set-Clipboard;Write-Host 'Link Copied!' -Fg Green}else{Write-Host 'Link not found. Open Gacha History in game first.' -Fg Red}`;
-    navigator.clipboard.writeText(script);
+  };
+
+  const copyScript = () => {
+    navigator.clipboard.writeText(getScript());
     alert('PowerShell 脚本已复制!请在 Windows PowerShell 中粘贴运行。');
   };
 
@@ -349,8 +352,8 @@ function ManualLinkImporter({ region }: { region: string; onSuccess: (data: any)
         <div className="flex items-center gap-2 text-slate-400 text-xs font-mono mb-2 border-b border-slate-700 pb-2">
           <Terminal size={14} /> PowerShell
         </div>
-        <code className="text-green-400 font-mono text-xs break-all line-clamp-3">
-          {region === 'cn' ? '# 自动获取国服链接脚本...' : '# Auto fetch Global link script...'}
+        <code className="text-green-400 font-mono text-xs break-all line-clamp-4 select-all">
+          {getScript()}
         </code>
       </div>
 
