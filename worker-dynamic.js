@@ -183,12 +183,26 @@ export default {
                 return jsonResponse(data);
             }
 
+
             if (url.pathname === "/api/auth/qr/fetch") {
                 const isGlobal = url.searchParams.get("scope") === "global";
                 const target = isGlobal ? "https://hk4e-sdk-os.hoyoverse.com/hk4e_global/combo/panda/qrcode/fetch" : "https://hk4e-sdk.mihoyo.com/hk4e_cn/combo/panda/qrcode/fetch";
                 const appId = isGlobal ? "150" : "4";
                 const deviceId = crypto.randomUUID();
-                const resp = await fetch(target, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ app_id: appId, device: deviceId }) });
+
+                const resp = await fetch(target, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                        "Accept": "application/json, text/plain, */*",
+                        "Accept-Language": "zh-CN,zh;q=0.9",
+                        "Origin": isGlobal ? "https://account.hoyoverse.com" : "https://user.mihoyo.com",
+                        "Referer": isGlobal ? "https://account.hoyoverse.com/" : "https://user.mihoyo.com/"
+                    },
+                    body: JSON.stringify({ app_id: appId, device: deviceId })
+                });
+
                 const data = await resp.json();
                 return jsonResponse(data);
             }
