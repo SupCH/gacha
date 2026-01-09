@@ -259,6 +259,58 @@ export default {
                 return jsonResponse({ retcode: 0, data: { stoken: data.data.token?.token || data.data.stoken, uid: data.data.user_info?.aid || data.data.user_info?.uid } });
             }
 
+            // Cookie 转换为 Gacha URL
+            if (url.pathname === "/api/auth/cookie-to-url") {
+                const { cookie, scope } = await request.json();
+                const isGlobal = scope === "global";
+
+                // 解析 cookie，提取必要的字段
+                const cookieObj = {};
+                cookie.split(';').forEach(item => {
+                    const [key, value] = item.trim().split('=');
+                    if (key && value) cookieObj[key] = value;
+                });
+
+                const cookieToken = cookieObj['cookie_token_v2'] || cookieObj['cookie_token'];
+                const accountId = cookieObj['account_id'] || cookieObj['ltuid'] || cookieObj['ltuid_v2'];
+
+                if (!cookieToken || !accountId) {
+                    return jsonResponse({
+                        retcode: -1,
+                        message: "Cookie 格式不正确，请确保包含 cookie_token_v2 和 account_id"
+                    });
+                }
+
+                // 构建 gacha URL (使用 cookie 直接访问抽卡历史)
+                const gachaUrlBase = isGlobal
+                    ? "https://sg-public-api.hoyoverse.com/event/gacha_info/api/getGachaLog"
+                    : "https://public-operation-hk4e.mihoyo.com/gacha_info/api/getGachaLog";
+
+                const params = new URLSearchParams({
+                    authkey_ver: "1",
+                    sign_type: "2",
+                    auth_appid: "webview_gacha",
+                    init_type: "301",
+                    gacha_id: isGlobal ? "dbebc8d9fbb0d4ffa067423482ce505bc5ea" : "e3c6f9f1bd0ebd6db20c5088ed0ca1f64be4",
+                    lang: isGlobal ? "en-us" : "zh-cn",
+                    device_type: "mobile",
+                    game_version: isGlobal ? "OSRELWin4.8.0_R24971658_S25126365_D25136887" : "CNRELWin4.8.0_R24886073_S24844616_D24845085",
+                    region: isGlobal ? "os_usa" : "cn_gf01",
+                    game_biz: isGlobal ? "hk4e_global" : "hk4e_cn"
+                });
+
+                const gachaUrl = `${gachaUrlBase}?${params.toString()}`;
+
+                return jsonResponse({
+                    retcode: 0,
+                    message: "OK",
+                    data: {
+                        url: gachaUrl,
+                        cookie: `cookie_token_v2=${cookieToken};account_id=${accountId};`
+                    }
+                });
+            }
+
             if (url.pathname === "/api/refresh-salt") {
                 if (env && env.SALT_CACHE) await env.SALT_CACHE.delete(CACHE_KEY);
                 const newConfig = await getSaltConfig(env);

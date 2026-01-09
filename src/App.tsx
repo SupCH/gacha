@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { QRScanner } from './components/QRScanner';
 import { PasswordLogin } from './components/PasswordLogin';
+import { CookieLogin } from './components/CookieLogin';
 import { fetchFullGachaLog, convertToUIGF } from './services/authService';
 
 // --- 配置区 ---
