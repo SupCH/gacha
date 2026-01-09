@@ -6,7 +6,7 @@ import { fetchMetadata, LOCAL_SIGNATURE_MAP } from './services/metadata';
 import {
   TrendingUp, Award, BarChart2, Hash, AlertCircle, HelpCircle,
   ChevronRight, FileJson, Sparkles, BrainCircuit,
-  Globe, Smartphone, Loader2, History, Link as LinkIcon, Terminal, Copy, Sigma, Key, QrCode
+  Globe, Smartphone, Loader2, History, Link as LinkIcon, Terminal, Copy, Sigma, Key, QrCode, Cookie
 } from 'lucide-react';
 import { QRScanner } from './components/QRScanner';
 import { PasswordLogin } from './components/PasswordLogin';
@@ -140,7 +140,7 @@ function WelcomeScreen({ onUpload, onImportMode, loading }: { onUpload: (e: Reac
 // --- 统一导入中心 ---
 function ImportHub({ onBack, onSuccess }: { onBack: () => void; onSuccess: (data: any) => void }) {
   const [region, setRegion] = useState('cn'); // cn, global
-  const [method, setMethod] = useState<'link' | 'qr' | 'password'>('link');
+  const [method, setMethod] = useState<'link' | 'qr' | 'password' | 'cookie'>('link');
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
 
@@ -238,6 +238,13 @@ function ImportHub({ onBack, onSuccess }: { onBack: () => void; onSuccess: (data
                     label="密码登录"
                     sub="支持全服"
                   />
+                  <MethodTab
+                    active={method === 'cookie'}
+                    onClick={() => setMethod('cookie')}
+                    icon={Cookie}
+                    label="Cookie登录"
+                    sub="推荐"
+                  />
                 </div>
 
                 <div className="flex-1">
@@ -252,6 +259,11 @@ function ImportHub({ onBack, onSuccess }: { onBack: () => void; onSuccess: (data
                   {method === 'password' && (
                     <div className="max-w-md mx-auto">
                       <PasswordLogin scope={region as any} onSuccess={handleLoginSuccess} />
+                    </div>
+                  )}
+                  {method === 'cookie' && (
+                    <div className="max-w-md mx-auto">
+                      <CookieLogin scope={region as any} onSuccess={handleLoginSuccess} />
                     </div>
                   )}
                 </div>
