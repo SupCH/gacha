@@ -323,7 +323,6 @@ function ManualLinkImporter({ region }: { region: string; onSuccess: (data: any)
           1. 在 PC 上打开游戏并进入 <span className="font-bold">抽卡记录</span> 页面。<br />
           2. 断开游戏内的网络或直接切回桌面。<br />
           3. 运行下方的 PowerShell 脚本自动获取链接。<br />
-          <span className="opacity-70 mt-1 block"> 国际服 (HoYoverse) 不支持扫码,必须使用此方法。</span>
         </div>
       </div>
 
